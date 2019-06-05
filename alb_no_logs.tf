@@ -149,9 +149,14 @@ resource "aws_lb_listener" "frontend_https_no_logs" {
   }
 }
 
+locals {
+  ssl_cert_listener_indexes_no_logs = var.extra_ssl_certs.*.https_listener_index
+  ssl_cert_arns_no_logs = var.extra_ssl_certs.*.certificate_arn
+}
+
 resource "aws_lb_listener_certificate" "https_listener_no_logs" {
-  listener_arn    = aws_lb_listener.frontend_https_no_logs[var.extra_ssl_certs[count.index]["https_listener_index"]].arn
-  certificate_arn = var.extra_ssl_certs[count.index]["certificate_arn"]
   count           = var.create_alb && false == var.logging_enabled ? var.extra_ssl_certs_count : 0
+  listener_arn    = aws_lb_listener.frontend_https_no_logs[local.ssl_cert_listener_indexes_no_logs[count.index]].arn
+  certificate_arn = local.ssl_cert_arns_no_logs[count.index]
 }
 
